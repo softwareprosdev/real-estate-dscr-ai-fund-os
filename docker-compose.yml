@@ -6,11 +6,12 @@ services:
     ports:
       - "8000:8000"
     environment:
+      - PYTHONPATH=/app
       - DATABASE_URL=postgresql+asyncpg://dscr:dscr_password@postgres:5432/dscr_fund
       - REDIS_URL=redis://redis:6379/0
-      - PYTHONPATH=/app
-    env_file:
-      - .env.example
+      - SECRET_KEY=local-dev-secret-change-in-production
+      - APP_ENV=development
+      - LOG_LEVEL=INFO
     volumes:
       - .:/app
     depends_on:
@@ -26,6 +27,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
     depends_on:
       - api
     restart: unless-stopped
@@ -37,7 +40,7 @@ services:
       POSTGRES_PASSWORD: dscr_password
       POSTGRES_DB: dscr_fund
     ports:
-      - "5432:5432"
+      - "54832:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
