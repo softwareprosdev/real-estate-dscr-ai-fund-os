@@ -11,13 +11,20 @@ from dataclasses import dataclass
 from backend.shared_models.property import PropertyCondition, PropertyType
 
 
-# Cost-per-sqft by condition and property type (USD, 2024 estimates)
+# Cost-per-sqft by condition (USD, Q2 2025 — RSMeans residential construction cost data)
+# Scope definitions:
+#   EXCELLENT  = punch-list only: appliance updates, paint, minor trim ($3-8/sqft)
+#   GOOD       = cosmetic: flooring, paint, fixtures, minor bath/kitchen update ($12-22/sqft)
+#   FAIR       = medium: kitchen/bath gut, new flooring, paint, partial mechanical ($28-48/sqft)
+#   POOR       = heavy: full kitchen/bath, HVAC, roof, windows, electrical update ($58-88/sqft)
+#   DISTRESSED = full gut: structural, all systems, full interior rebuild ($90-140/sqft)
+# Midpoints used as base; variance applied at estimate time
 CONDITION_BASE_CPSqFT: dict[str, float] = {
-    PropertyCondition.EXCELLENT: 5.0,
-    PropertyCondition.GOOD: 15.0,
-    PropertyCondition.FAIR: 35.0,
-    PropertyCondition.POOR: 60.0,
-    PropertyCondition.DISTRESSED: 95.0,
+    PropertyCondition.EXCELLENT: 6.0,
+    PropertyCondition.GOOD: 17.0,
+    PropertyCondition.FAIR: 38.0,
+    PropertyCondition.POOR: 73.0,
+    PropertyCondition.DISTRESSED: 115.0,
 }
 
 PROPERTY_TYPE_MULTIPLIER: dict[str, float] = {
@@ -58,15 +65,21 @@ def estimate_rehab(
 
     effective_cpsf = base_cpsf * type_mult * age_factor
 
-    # Older systems (electrical, plumbing, HVAC) add step costs at thresholds
+    # System surcharges for aging mechanical/electrical (Q2 2025 contractor pricing)
+    # HVAC replacement: $8k–$18k for 1,500 sqft SFR (avg ~$10k)
+    # Electrical panel upgrade 100→200A: $2,500–$5,000
+    # Plumbing repiping: $4,000–$15,000 depending on sqft
     system_surcharge = 0.0
     flags = []
-    if age > 50:
-        system_surcharge += sqft * 8
-        flags.append("50+ year old property: likely electrical/plumbing overhaul needed")
+    if age > 60:
+        system_surcharge += max(sqft * 10, 12_000)  # Full electrical + plumbing likely
+        flags.append("60+ year old property: electrical rewire and plumbing repipe likely required")
+    elif age > 45:
+        system_surcharge += max(sqft * 6, 8_000)    # Partial electrical update + plumbing
+        flags.append("45+ year old property: electrical panel upgrade and partial plumbing likely")
     if age > 30:
-        system_surcharge += sqft * 3
-        flags.append("30+ year old HVAC likely requires replacement")
+        system_surcharge += max(sqft * 4, 10_000)   # HVAC full replacement: $10–16k
+        flags.append("30+ year old HVAC system: full replacement budget required (~$10–16k)")
 
     base_estimate = (effective_cpsf * sqft) + system_surcharge
     variance = 0.25 if condition in [PropertyCondition.FAIR, PropertyCondition.GOOD] else 0.40

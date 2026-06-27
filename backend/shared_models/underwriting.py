@@ -12,7 +12,7 @@ class UnderwritingInput(BaseModel):
     section_8_rent: Optional[float] = None
     rehab_cost_estimate: float = 0.0
     loan_amount: Optional[float] = None
-    loan_rate: float = 0.075
+    loan_rate: float = 0.0799  # Kiavi/Visio 30yr DSCR, June 2025
     loan_term_years: int = 30
     ltv: float = 0.75
     vacancy_rate: float = 0.08

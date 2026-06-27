@@ -45,8 +45,14 @@ def main():
             estimated_monthly_rent=prop["estimated_rent"],
             section_8_rent=prop["section_8_rent"],
             rehab_cost_estimate=0,
-            loan_rate=0.079,
+            loan_rate=0.0799,   # Kiavi/Visio rate for standard DSCR, June 2025
             ltv=0.75,
+            property_tax_annual=None,   # state-specific lookup in engine
+            insurance_annual=None,      # 0.85% of purchase price (2025 landlord policy)
+            vacancy_rate=0.07,          # SFR vacancy: national avg ~6-8%, NMHC Q1 2025
+            property_mgmt_rate=0.10,    # Standard PM fee: 8-12% of gross rent
+            maintenance_rate=0.05,      # 5% of EGI (Fannie Mae guideline)
+            capex_rate=0.05,            # 5% CapEx reserve (standard institutional underwrite)
         )
         report = underwrite(uw_inp)
 

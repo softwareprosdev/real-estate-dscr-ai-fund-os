@@ -3,16 +3,21 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "../api/client";
 import MetricCard from "../components/MetricCard";
 
+// Defaults: Memphis TN 3/2 SFR, June 2025 real-world values
+// Loan rate: Kiavi 30yr DSCR fixed, 75% LTV, 1.0+ DSCR
+// Section 8 rent: 2025 HUD FMR 3BR Shelby County TN = $1,168
+// Insurance: 0.85% of purchase (2025 landlord policy market rate)
+// Vacancy: 7% (national SFR avg, NMHC Q1 2025)
 const DEFAULTS = {
   property_id: "PROP_0001",
-  purchase_price: 85000,
-  arv: 115000,
+  purchase_price: 87500,
+  arv: 118000,
   estimated_monthly_rent: 1050,
-  section_8_rent: 1150,
-  rehab_cost_estimate: 15000,
-  loan_rate: 0.079,
+  section_8_rent: 1168,
+  rehab_cost_estimate: 14000,
+  loan_rate: 0.0799,
   ltv: 0.75,
-  vacancy_rate: 0.08,
+  vacancy_rate: 0.07,
   property_mgmt_rate: 0.10,
   maintenance_rate: 0.05,
   capex_rate: 0.05,

@@ -19,7 +19,7 @@ class LenderProfile(BaseModel):
     lender_type: LenderType
 
     dscr_min: float = Field(ge=1.0, le=2.0)
-    dscr_stress_min: float = Field(ge=0.9, le=1.5)
+    dscr_stress_min: float = Field(ge=0.7, le=1.5)
     ltv_max: float = Field(ge=0.5, le=0.85)
     loan_min: float = 50_000
     loan_max: float = 5_000_000

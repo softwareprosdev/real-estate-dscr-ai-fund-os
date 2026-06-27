@@ -28,14 +28,34 @@ def _monthly_payment(principal: float, annual_rate: float, term_years: int) -> f
     return principal * (r * (1 + r) ** n) / ((1 + r) ** n - 1)
 
 
+# Effective property tax rates by state (2024 Tax Foundation data)
+_STATE_TAX_RATES: dict[str, float] = {
+    "NJ": 0.0219, "IL": 0.0202, "CT": 0.0198, "NH": 0.0177,
+    "VT": 0.0165, "NY": 0.0145, "WI": 0.0143, "TX": 0.0160,
+    "OH": 0.0157, "MI": 0.0141, "PA": 0.0153, "IA": 0.0149,
+    "NE": 0.0147, "RI": 0.0142, "MA": 0.0101, "MD": 0.0100,
+    "KS": 0.0127, "MO": 0.0091, "IN": 0.0083, "ME": 0.0105,
+    "SD": 0.0107, "MN": 0.0100, "OK": 0.0083, "KY": 0.0078,
+    "WA": 0.0092, "CO": 0.0051, "FL": 0.0091, "OR": 0.0095,
+    "GA": 0.0080, "VA": 0.0074, "NC": 0.0073, "TN": 0.0061,
+    "AL": 0.0041, "MS": 0.0065, "AR": 0.0062, "SC": 0.0055,
+    "LA": 0.0057, "WV": 0.0057, "AZ": 0.0061, "CA": 0.0071,
+    "NV": 0.0055, "UT": 0.0057, "DC": 0.0056, "DE": 0.0055,
+    "ID": 0.0063, "MT": 0.0073, "WY": 0.0058, "NM": 0.0072,
+    "AK": 0.0098, "HI": 0.0028,
+}
+_DEFAULT_TAX_RATE = 0.0108  # national avg
+
+
 def _estimate_property_tax(purchase_price: float, state: str = "unknown") -> float:
-    # Average effective property tax rates by state bucket (simplified)
-    rate = 0.012
+    rate = _STATE_TAX_RATES.get(state.upper(), _DEFAULT_TAX_RATE)
     return purchase_price * rate
 
 
 def _estimate_insurance(purchase_price: float) -> float:
-    return purchase_price * 0.005
+    # Landlord policy (DP-3): 0.75%–1.0% of replacement cost (2024–2025 market)
+    # Costs have risen significantly post-2022 due to reinsurance and climate risk
+    return purchase_price * 0.0085
 
 
 def _irr_5yr(
