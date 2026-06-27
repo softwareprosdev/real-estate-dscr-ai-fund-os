@@ -3,11 +3,6 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "../api/client";
 import MetricCard from "../components/MetricCard";
 
-// Defaults: Memphis TN 3/2 SFR, June 2025 real-world values
-// Loan rate: Kiavi 30yr DSCR fixed, 75% LTV, 1.0+ DSCR
-// Section 8 rent: 2025 HUD FMR 3BR Shelby County TN = $1,168
-// Insurance: 0.85% of purchase (2025 landlord policy market rate)
-// Vacancy: 7% (national SFR avg, NMHC Q1 2025)
 const DEFAULTS = {
   property_id: "PROP_0001",
   purchase_price: 87500,
@@ -42,13 +37,24 @@ export default function UnderwritingPage() {
         {Object.entries(DEFAULTS).map(([key, val]) => (
           <label key={key} className="flex flex-col gap-1">
             <span className="text-xs text-gray-400 uppercase">{key.replace(/_/g, " ")}</span>
-            <input
-              type="number"
-              step="any"
-              className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white"
-              value={(form as any)[key]}
-              onChange={(e) => setForm((f) => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))}
-            />
+            {typeof val === "string" ? (
+              <input
+                type="text"
+                className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white"
+                value={(form as any)[key]}
+                onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+              />
+            ) : (
+              <input
+                type="number"
+                step="any"
+                className="bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white"
+                value={(form as any)[key]}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))
+                }
+              />
+            )}
           </label>
         ))}
       </div>
@@ -62,27 +68,56 @@ export default function UnderwritingPage() {
       </button>
 
       {mutation.error && (
-        <p className="text-red-400 text-sm">{String(mutation.error)}</p>
+        <div className="bg-red-950 border border-red-700 rounded p-3">
+          <p className="text-red-400 text-sm font-bold mb-1">Error</p>
+          <p className="text-red-300 text-xs">{String(mutation.error)}</p>
+        </div>
       )}
 
       {r && (
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <span className={`text-2xl font-black ${mutation.data.recommendation === "STRONG_BUY" || mutation.data.recommendation === "BUY" ? "text-green-400" : mutation.data.recommendation === "CONDITIONAL" ? "text-yellow-400" : "text-red-400"}`}>
+            <span
+              className={`text-2xl font-black ${
+                mutation.data.recommendation === "STRONG_BUY" ||
+                mutation.data.recommendation === "BUY"
+                  ? "text-green-400"
+                  : mutation.data.recommendation === "CONDITIONAL"
+                  ? "text-yellow-400"
+                  : "text-red-400"
+              }`}
+            >
               {mutation.data.recommendation}
             </span>
-            <span className="text-gray-400 text-sm">Confidence: {(mutation.data.underwriting_confidence * 100).toFixed(0)}%</span>
+            <span className="text-gray-400 text-sm">
+              Confidence: {(mutation.data.underwriting_confidence * 100).toFixed(0)}%
+            </span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <MetricCard label="DSCR Base" value={r.dscr_base.toFixed(3)} variant={dscrVariant(r.dscr_base)} />
             <MetricCard label="DSCR Stress" value={r.dscr_combined_stress.toFixed(3)} variant={dscrVariant(r.dscr_combined_stress)} />
-            <MetricCard label="NOI" value={`$${r.noi.toLocaleString()}`} />
-            <MetricCard label="Monthly CF" value={`$${r.cash_flow_monthly.toLocaleString()}`} variant={r.cash_flow_monthly > 0 ? "good" : "bad"} />
+            <MetricCard label="NOI / yr" value={`$${Math.round(r.noi).toLocaleString()}`} />
+            <MetricCard
+              label="Monthly CF"
+              value={`$${Math.round(r.cash_flow_monthly).toLocaleString()}`}
+              variant={r.cash_flow_monthly > 0 ? "good" : "bad"}
+            />
             <MetricCard label="Cap Rate" value={`${(r.cap_rate * 100).toFixed(2)}%`} />
-            <MetricCard label="CoC Return" value={`${(r.cash_on_cash_return * 100).toFixed(2)}%`} variant={r.cash_on_cash_return >= 0.07 ? "good" : r.cash_on_cash_return >= 0.04 ? "warn" : "bad"} />
+            <MetricCard
+              label="CoC Return"
+              value={`${(r.cash_on_cash_return * 100).toFixed(2)}%`}
+              variant={r.cash_on_cash_return >= 0.07 ? "good" : r.cash_on_cash_return >= 0.04 ? "warn" : "bad"}
+            />
             <MetricCard label="5yr IRR" value={`${(r.irr_5yr_estimate * 100).toFixed(2)}%`} />
             <MetricCard label="Risk-Adj Return" value={`${(r.risk_adjusted_return * 100).toFixed(2)}%`} />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <MetricCard label="Loan Amount" value={`$${Math.round(r.loan_amount).toLocaleString()}`} />
+            <MetricCard label="Monthly Payment" value={`$${Math.round(r.monthly_payment).toLocaleString()}`} />
+            <MetricCard label="Gross Rent / yr" value={`$${Math.round(r.gross_rent).toLocaleString()}`} />
+            <MetricCard label="Operating Exp" value={`$${Math.round(r.operating_expenses).toLocaleString()}`} />
           </div>
 
           {mutation.data.risk_flags?.length > 0 && (

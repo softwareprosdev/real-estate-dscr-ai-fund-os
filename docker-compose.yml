@@ -29,6 +29,8 @@ services:
       - "5173:5173"
     environment:
       - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend/vite_react_dashboard/src:/app/src
     depends_on:
       - api
     restart: unless-stopped
